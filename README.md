@@ -9,7 +9,9 @@ Does not use CTS/RTS pins since they are not used on NexStar 5SE.
 
 > CTS/RTS are 2 of the 4 serial pins. They are old school and not used anymore, which is probably why they have been repurposed.
 
- CTS is always 3V, RTS is always 12V (!). Commonly available 4-wire telephone cables can be used to connect GPS unit to telescope (but you need 6p6c plug on telescope side anyway, just do not connect pins 1 and 6). Also 5SE has TX and RX pins shortcutted so relatively weird logic with two software serial instances (one for TX, another for RX) is used to allow telescope firmware to work properly.
+ CTS is always 3V, RTS is always 12V (!). Commonly available 4-wire telephone cables can be used to connect GPS unit to telescope (but you need 6p6c plug on telescope side anyway, just do not connect pins 1 and 6)
+
+**Also 5SE has TX and RX pins shortcutted so relatively weird logic with two software serial instances (one for TX, another for RX) is used to allow telescope firmware to work properly.**
 
 Without the work of Andre Paquette you find at http://www.paquettefamily.ca/nexstar/NexStar_AUX_Commands_10.pdf this library would have been impossible. Andre you rock!
 
@@ -231,4 +233,19 @@ https://hackaday.com/2017/08/17/secret-serial-port-for-arduinoesp32/
 This would allow a progamming connection, and GPS connection and a telescope connection.
 
 Put the GPS on the 'secret one' so we can check it works. Pretty confident serial 2 will work - connect that to telescope lead.
+
+## Software serial ##
+I don't know whether the hardware serial is neccessary. The comment at the top
+> **Also 5SE has TX and RX pins shortcutted so relatively weird logic with two software serial instances (one for TX, another for RX) is used to allow telescope firmware to work properly.**
+
+suggests that splitting send and receive is neccessary?
+
+``` #define RX_PIN 3
+#define TX_PIN 5
+
+ross mountserial(RX_PIN);
+soss sendmountserial(TX_PIN);
+```
+
+Probably better start with software serial.
 

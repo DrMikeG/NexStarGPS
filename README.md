@@ -195,6 +195,10 @@ https://circuits4you.com/2018/12/31/esp32-hardware-serial2-example/
 There are three serial ports on the ESP32 known as U0UXD, U1UXD and U2UXD all work at 3.3V TTL Level. There are three hardware supported serial interfaces on the ESP32 known as UART0, UART1 and UART2. 
 
 
+https://randomnerdtutorials.com/getting-started-with-esp32/
+
+
+
 ![Alt text](./README_img/ESP32-Pinout.jpg)
 
 ```/*
@@ -249,3 +253,67 @@ soss sendmountserial(TX_PIN);
 
 Probably better start with software serial.
 
+
+## 25th May 2020 ##
+
+When powered from USB, what is the output from VIN? 5V
+
+Can I power the GPS chip from this?
+A) When running from USB?
+4.6v measured gnd/vin
+B) When running from another power source? (Pull this to 5V)?
+
+I wanted to test the programming of the ESP board and the wiring of the GPS module.
+
+I used the TinyGPSPlusPlus KitchenSink01 example installed in CelestronGPSBase repo.
+It required modification for the board - changing the pins to D13 and D12 which are handly right next to power and gnd.
+
+static const int RXPin = 13, TXPin = 12;
+
+static const uint32_t GPSBaud = 9600;
+
+// The serial connection to the GPS device
+SoftwareSerial ss(RXPin, TXPin);
+
+Blue wire to esp pin 12
+purple wire to esp pin 13
+programmed as esp32 dev module
+
+ 9:29:36.275 -> TIME       Fix Age=2ms Raw=18293900 Hour=18 Minute=29 Second=39 Hundredths=0
+19:29:36.275 -> ALTITUDE   Fix Age=8ms Raw=-2460 Meters=-24.60 Miles=-0.02 KM=-0.02 Feet=-80.71
+19:29:36.275 -> SATELLITES Fix Age=15ms Value=4
+19:29:36.275 -> HDOP       Fix Age=18ms Value=594
+19:29:37.138 -> LOCATION   Fix Age=0ms Raw Lat=+52[+313470833 billionths],  Raw Long=+0[+21190000 billionths],  Lat=52.313471 Long=0.021190
+
+Next step? To think about the telescope connection.
+
+The black cable on my 2017 version is colour
+
+looking at the plug, wiring going out to the right
+ 
+
+   ________
+ 1| white  |     | CTS
+ 2| brown  | D5  | data from main
+ 3| green  | 12v | +12V
+ 4| yellow | D3  | data from device
+ 5| pink   | gnd | gnd
+ 6| black  |     | RTS
+  ---------
+
+  > CTS is always 3V, RTS is always 12V (!).
+
+My new white cable colouring is
+
+1| RED    |
+2| BLUE   | D5
+3| WHITE  | 12v
+4| BROWN  | D3
+5| GREEN  | gnd
+6| YELLOW |
+
+Will the telescope work with 3V logic, that's the question?
+
+Probably better test this before I get too wrapped up in the webpage side of things...
+
+Then there is the power supply question, 500ma peak pull down this bell wire?

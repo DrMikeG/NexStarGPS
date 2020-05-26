@@ -44,10 +44,9 @@ void handleRoot() {
 }
  
 void handleADC() {
- int a = analogRead(A0);
- String adcValue = String(a);
- 
- server.send(200, "text/plane", adcValue); //Send ADC value only to client ajax request
+ String adcValue = String(gps.charsProcessed());
+ printGPSData();
+ server.send(200, "text/plane", adcValue ); //Send ADC value only to client ajax request
 }
 
 
@@ -244,5 +243,5 @@ void printGPSData()
 void loop()
 {
    server.handleClient();
-   delay(5000);
+   printGPSData();
 }

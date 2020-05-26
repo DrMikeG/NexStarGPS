@@ -34,6 +34,9 @@ const char* password = "12345678";
 IPAddress local_IP(192,168,0,1);
 IPAddress gateway(192,168,0,254);
 IPAddress subnet(255,255,255,0);
+
+
+String bufferString;
  
 //===============================================================
 // This routine is executed when you open its IP in browser
@@ -44,7 +47,7 @@ void handleRoot() {
 }
  
 void handleADC() {
- String adcValue = String(gps.charsProcessed());
+ String adcValue = String(bufferString);
  printGPSData();
  server.send(200, "text/plane", adcValue ); //Send ADC value only to client ajax request
 }
@@ -80,30 +83,42 @@ void setup()
   Serial.println();
 }
 
+
+template<class T>
+void printAndAppend(T param)
+{
+  bufferString += String(param);
+  Serial.print(param);
+}
+
 void printGPSData()
 {
   // Dispatch incoming characters
   while (ss.available() > 0)
     gps.encode(ss.read());
 
+
+
   if (gps.location.isUpdated())
   {
-    Serial.print(F("LOCATION   Fix Age="));
-    Serial.print(gps.location.age());
-    Serial.print(F("ms Raw Lat="));
-    Serial.print(gps.location.rawLat().negative ? "-" : "+");
-    Serial.print(gps.location.rawLat().deg);
-    Serial.print("[+");
-    Serial.print(gps.location.rawLat().billionths);
-    Serial.print(F(" billionths],  Raw Long="));
-    Serial.print(gps.location.rawLng().negative ? "-" : "+");
-    Serial.print(gps.location.rawLng().deg);
-    Serial.print("[+");
-    Serial.print(gps.location.rawLng().billionths);
-    Serial.print(F(" billionths],  Lat="));
-    Serial.print(gps.location.lat(), 6);
-    Serial.print(F(" Long="));
-    Serial.println(gps.location.lng(), 6);
+      bufferString = ""; // Clear
+    printAndAppend(F("LOCATION   Fix Age="));
+    printAndAppend(gps.location.age());
+    printAndAppend(F("ms Raw Lat="));
+    printAndAppend(gps.location.rawLat().negative ? "-" : "+");
+    printAndAppend(gps.location.rawLat().deg);
+    printAndAppend("[+");
+    printAndAppend(gps.location.rawLat().billionths);
+    printAndAppend(F(" billionths],  Raw Long="));
+    printAndAppend(gps.location.rawLng().negative ? "-" : "+");
+    printAndAppend(gps.location.rawLng().deg);
+    printAndAppend("[+");
+    printAndAppend(gps.location.rawLng().billionths);
+    printAndAppend(F(" billionths],  Lat="));
+    printAndAppend(gps.location.lat());
+    printAndAppend(F(" Long="));
+    printAndAppend(gps.location.lng());
+    printAndAppend('\n');
   }
 
   else if (gps.date.isUpdated())

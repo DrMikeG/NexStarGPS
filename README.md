@@ -317,3 +317,10 @@ Will the telescope work with 3V logic, that's the question?
 Probably better test this before I get too wrapped up in the webpage side of things...
 
 Then there is the power supply question, 500ma peak pull down this bell wire?
+
+--- 
+
+Hmm, so ross.cpp does not compile because it has avr specific includes.
+I am trying to figure out if I can use software serial however, since that does compile for ESP32...
+
+But now I have pins coming out my ears....

@@ -16,9 +16,10 @@ const char MAIN_page[] PROGMEM = R"=====(
 <body>
 
 <div class="card">
-  <h4>The ESP32 Update web page without refresh</h4><br>
-  <h1>Sensor Value:<span id="ADCValue">0</span></h1><br>
-  <br><a href="https://circuits4you.com">Circuits4you.com</a>
+  <h4>ESP32 updating web page list with serial count without full page refresh</h4><br>
+  <ul id="myList">
+  <li>No data</li>
+  </ul>
 </div>
 <script>
 
@@ -31,8 +32,10 @@ function getData() {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
-      document.getElementById("ADCValue").innerHTML =
-      this.responseText;
+      var node = document.createElement("LI");                 // Create a <li> node
+      var textnode = document.createTextNode(this.responseText);         // Create a text node
+      node.appendChild(textnode);                              // Append the text to <li>
+      document.getElementById("myList").appendChild(node);
     }
   };
   xhttp.open("GET", "readADC", true);

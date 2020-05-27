@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "Arduino.h"
 #include "NexStarGPS.h"
-//#include "soss.h"
-//#include "ross.h"
+#include "soss.h"
+#include "ross.h"
 
 NexstarMessageReceiver::NexstarMessageReceiver() : preamble_received(false), length_received(false), finished(false), valid(false), index(0), last_index(0), last_receive_timestamp(-1)
 {
@@ -146,7 +146,7 @@ void NexstarMessageSender::calc_checksum()
 	message.data[message.msg.header.length + 2] = (result & 0xff);
 }
 
-bool NexstarMessageSender::send(SoftwareSerial* serial)
+bool NexstarMessageSender::send(soss* serial)
 {
 	uint8_t bytes_to_send = message.msg.header.length - 2;
 	calc_checksum();
@@ -164,7 +164,7 @@ bool NexstarMessageSender::send(SoftwareSerial* serial)
 
 
 
-inline void NexstarMessageSender::sendByte(SoftwareSerial* sserial, uint8_t b)
+inline void NexstarMessageSender::sendByte(soss* sserial, uint8_t b)
 {
 	sserial->write(b);
 	//Serial.print("> ");

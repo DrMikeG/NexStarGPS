@@ -324,3 +324,22 @@ Hmm, so ross.cpp does not compile because it has avr specific includes.
 I am trying to figure out if I can use software serial however, since that does compile for ESP32...
 
 But now I have pins coming out my ears....
+
+Voltage divider.
+
+5v -> 3V
+1k and 2k resister
+SMd package
+
+1001 2201
+
+
+Finally found libraries:
+/Volumes/ExtData03_2TB/Users/mike/Documents/Arduino/libraries/EspSoftwareSerial/src
+
+
+Programming one of my old stock of nanos.
+Blink.
+Board: Arduino nano
+Processor: AtMega329P (old boot loader)
+Programmer: AVR ISP

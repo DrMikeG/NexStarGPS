@@ -24,9 +24,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "Arduino.h"
 #include "TinyGPS.h"
-//#include "soss.h"
-//#include "ross.h"
-#include <SoftwareSerial.h>
+#include "soss.h"
+#include "ross.h"
 
 #define NexStarGPS_VERSION 1
 
@@ -100,7 +99,7 @@ class NexstarMessageSender
 public:
 	NexstarMessageSender(TinyGPS* _gps);
 	nexstar_msg_union* getMessage();
-	bool send(SoftwareSerial* serial);
+	bool send(soss* serial);
 	bool handleMessage(NexstarMessageReceiver* receiver);
 
 protected:
@@ -121,7 +120,7 @@ protected:
 	void degToBytes(float* deg);
 	void calc_checksum();
 	void pinModeTri(int pin);
-	void sendByte(SoftwareSerial* serial, uint8_t b);
+	void sendByte(soss* serial, uint8_t b);
 
 	// Fields
 	nexstar_msg_union message;

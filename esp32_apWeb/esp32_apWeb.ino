@@ -3,8 +3,12 @@
 #include <WebServer.h>
 #include "index.h"  //Web page header file
 
+#include "soss.h"
+#include "ross.h"
+
 #include <TinyGPS++.h>
 #include <SoftwareSerial.h>
+#include "NexStarGPS.h"
 /*
   This sample code demonstrates just about every built-in operation of TinyGPS++ (TinyGPSPlus).
   
@@ -20,8 +24,19 @@ static const uint32_t GPSBaud = 9600;
 // The TinyGPS++ object
 TinyGPSPlus gps;
 
+
 // The serial connection to the GPS device
 SoftwareSerial ss(RXPin, TXPin);
+
+// The serial input from the mount
+static const int mountRXPin = 14, mountNullPin = 26;
+ross mountserial(mountRXPin,mountNullPin); // Only the rx pin will be used?
+
+#define mountTX_PIN 5
+soss sendmountserial(mountTX_PIN);
+
+
+NexstarMessageReceiver msg_receiver;
 
 // For stats that happen every 5 seconds
 unsigned long last = 0UL;
@@ -37,6 +52,7 @@ IPAddress subnet(255,255,255,0);
 
 
 String bufferString;
+String bufferString2;
  
 //===============================================================
 // This routine is executed when you open its IP in browser
@@ -47,15 +63,23 @@ void handleRoot() {
 }
  
 void handleADC() {
-  String adcValue = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><serialData><serial1>" + bufferString + "</serial1><serial2>"+"bob"+"</serial2></serialData>"; 
+  String adcValue = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><serialData><serial1>" + bufferString + "</serial1><serial2>"+bufferString2+"</serial2></serialData>"; 
   server.send(200, "application/xml", adcValue ); 
 }
 
 
 void setup()
 {
+  
+  // Test output
   Serial.begin(115200);
+
+  // GPS input/output
   ss.begin(GPSBaud);
+
+
+ // Mount serial in
+  mountserial.begin(19200);
 
 
 //ESP32 As access point
@@ -82,6 +106,13 @@ void setup()
   Serial.println();
 
   bufferString = "GPS No lock"; // Clear
+  bufferString2 = "No mount data recieved";
+
+  pinModeTri(mountRXPin);
+  pinModeTri(mountNullPin);
+ 
+  mountserial.begin(19200);
+  msg_receiver.reset();
   
 }
 
@@ -92,6 +123,15 @@ void printAndAppend(T param)
   bufferString += String(param);
   Serial.print(param);
 }
+
+template<class T>
+void printAndAppend2(T param)
+{
+  bufferString2 += String(param);
+  Serial.print(param);
+}
+
+
 
 void printGPSData()
 {
@@ -257,9 +297,54 @@ void printGPSData()
   }
 }
 
+void checkForMountSerialInput()
+{
+if (mountserial.available())
+  {
+    int c = mountserial.read();
+    Serial.println(c, HEX);
+    if (msg_receiver.process(c))
+    {
+      bufferString2 = "";
+      nexstar_msg_union* msgin = msg_receiver.getMessage();
+      if (msgin->msg.header.to != DEVICE_GPS)
+      {
+        printAndAppend2("Message header is not intended for GPS device: ");
+        printAndAppend2(msgin->msg.header.to);
+        printAndAppend2('\n');       
+      }
+      else
+      {
+        printAndAppend2("Message header is intended for GPS device ");
+        printAndAppend2(msgin->msg.header.to);
+        printAndAppend2('\n');
+        printAndAppend2("Message from ");
+        printAndAppend2(msgin->msg.header.from);
+        printAndAppend2('\n');
+        printAndAppend2("Message ID ");
+        printAndAppend2(msgin->msg.header.messageid);
+        printAndAppend2('\n');
+      }  
+    }
+  }
+  else
+  {
+      //Serial.println("mountserial.available() == false");
+  }
+}
+
 
 void loop()
 {
    server.handleClient();
-   printGPSData();
+   checkForMountSerialInput();
+   //printGPSData();
+}
+
+
+inline void pinModeTri(int pin)
+{
+  //digitalWrite(pin, LOW);
+  //pinMode(pin, OUTPUT);
+  pinMode(pin, INPUT);
 }

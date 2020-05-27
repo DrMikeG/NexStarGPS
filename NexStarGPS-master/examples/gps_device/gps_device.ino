@@ -1,33 +1,18 @@
 #include <TinyGPS.h>
 #include "NexStarGPS.h"
-#include <SoftwareSerial.h>
-//#include "soss.h"
+#include "soss.h"
+#include "ross.h"
 
-
+#define RX_PIN 3
+#define TX_PIN 5
 
 #define SIGNAL_PIN 9
 #define LED_PIN 13
 
-// Telescope
-//#define RX_PIN 3
-//#define TX_PIN 5
-//ross mountserial(RX_PIN);
-//soss sendmountserial(TX_PIN);
-
-#define RX_PIN 3 // Will be used?
-#define TX_PIN 4
-#define RX2_PIN 7
-#define TX2_PIN 5 // Will be used?
-
-SoftwareSerial mountserial(RX_PIN,TX_PIN); // Only the rx pin will be used?
-SoftwareSerial sendmountserial(RX2_PIN,TX2_PIN); // Only the tx pin will be used?
-
+ross mountserial(RX_PIN);
+soss sendmountserial(TX_PIN);
 
 TinyGPS gps;
-static const int gpsRXPin = 13, gpsTXPin = 12;
-static const uint32_t GPSBaud = 9600;
-// The serial connection to the GPS device
-SoftwareSerial ss(gpsRXPin, gpsTXPin);
 
 NexstarMessageReceiver msg_receiver;
 NexstarMessageSender msg_sender(&gps);
@@ -42,39 +27,16 @@ long interval_lock = 5;
 
 boolean haveLock = false;
 
-
-
-inline void pinModeTri(int pin)
-{
-  //digitalWrite(pin, LOW);
-  //pinMode(pin, OUTPUT);
-  pinMode(pin, INPUT);
-}
-
-
 void setup()
 {
-
-  Serial.begin(115200);
-
-  // Telescope in
-  mountserial.begin(19200);
-  
-  ss.begin(GPSBaud);
-
 	// GPS module speed
-	//Serial.begin(57600);
+	Serial.begin(57600);
 	pinMode(LED_PIN, OUTPUT);
 	digitalWrite(LED_PIN, LOW);
 	pinMode(SIGNAL_PIN, OUTPUT);
 	digitalWrite(SIGNAL_PIN, LOW);
-	
 	pinModeTri(RX_PIN);
 	pinModeTri(TX_PIN);
- // Set RTS/CTS to tri-state
-  pinModeTri(RX2_PIN);
-  pinModeTri(TX2_PIN);
- 
 	mountserial.begin(19200);
 	msg_receiver.reset();
 }
@@ -98,17 +60,15 @@ void loop()
 				sendmountserial.end();
 				pinModeTri(RX_PIN);
 				pinModeTri(TX_PIN);
-        pinModeTri(RX2_PIN);
-         pinModeTri(TX2_PIN);
 				mountserial.begin(19200);
 				digitalWrite(LED_PIN, LOW);
 			}
 		}
 	}
 
-	if (ss.available())
+	if (Serial.available())
 	{
-		char c = ss.read();
+		char c = Serial.read();
 		gps.encode(c);
 
 		gps.get_datetime(NULL, NULL, &fix_age);
@@ -132,7 +92,7 @@ void loop()
 			previousMillis = currentMillis;
 			static unsigned int val = 21;
 			static int dir = 1;
-			//analogWrite(SIGNAL_PIN, val);
+			analogWrite(SIGNAL_PIN, val);
 			if ((val == 255) || (val == 20))
 			{
 				dir = dir * (-1);
@@ -162,4 +122,11 @@ void loop()
 			digitalWrite(SIGNAL_PIN, ledState);
 		}
 	}
+}
+
+inline void pinModeTri(int pin)
+{
+	//digitalWrite(pin, LOW);
+	//pinMode(pin, OUTPUT);
+	pinMode(pin, INPUT);
 }

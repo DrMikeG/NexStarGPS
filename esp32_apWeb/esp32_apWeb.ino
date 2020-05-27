@@ -47,9 +47,8 @@ void handleRoot() {
 }
  
 void handleADC() {
- String adcValue = String(bufferString);
- printGPSData();
- server.send(200, "text/plane", adcValue ); //Send ADC value only to client ajax request
+  String adcValue = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><serialData><serial1>" + bufferString + "</serial1><serial2>"+"bob"+"</serial2></serialData>"; 
+  server.send(200, "application/xml", adcValue ); 
 }
 
 
@@ -81,6 +80,9 @@ void setup()
   Serial.println(TinyGPSPlus::libraryVersion());
   Serial.println(F("by Mikal Hart"));
   Serial.println();
+
+  bufferString = "GPS No lock"; // Clear
+  
 }
 
 
@@ -101,7 +103,7 @@ void printGPSData()
 
   if (gps.location.isUpdated())
   {
-      bufferString = ""; // Clear
+    bufferString = ""; // Clear
     printAndAppend(F("LOCATION   Fix Age="));
     printAndAppend(gps.location.age());
     printAndAppend(F("ms Raw Lat="));
@@ -195,10 +197,11 @@ void printGPSData()
 
   else if (gps.satellites.isUpdated())
   {
-    Serial.print(F("SATELLITES Fix Age="));
-    Serial.print(gps.satellites.age());
-    Serial.print(F("ms Value="));
-    Serial.println(gps.satellites.value());
+    bufferString = ""; // Clear
+    printAndAppend(F("SATELLITES Fix Age="));
+    printAndAppend(gps.satellites.age());
+    printAndAppend(F("ms Value="));
+    printAndAppend(gps.satellites.value());
   }
 
   else if (gps.hdop.isUpdated())

@@ -55,7 +55,9 @@ bool NexstarMessageReceiver::validate_checksum()
 	return (message.data[message.msg.header.length + 2] == (result & 0xff));
 }
 
-void NexstarMessageReceiver::reset()
+void NexstarMessageReceiver::
+
+reset()
 {
 	index = 0;
 	preamble_received = false;

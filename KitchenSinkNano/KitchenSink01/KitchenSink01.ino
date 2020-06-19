@@ -1,69 +1,43 @@
-//#include <TinyGPS.h>
 #include <TinyGPS++.h>
-//#include "NexStarGPS.h"
-//#include "soss.h"
-//#include "ross.h"
 #include <SoftwareSerial.h>
-
 /*
- * This sketch is just a proof right now. It is programmed against my nano clone
- * Board: Arduino nano
- * Processor: AtMega329P (old boot loader)
- * Programmer: AVR ISP
- * The GPS is connected Blue wire (RX) to pin D5 - via a voltage divider (20k to ground, 10k to pin D5)
- * The GPS purple wire (TX) is connected to pin D3
- * This sketch is using softwareSerial and TinyGPS++
- */
+   This sample code demonstrates just about every built-in operation of TinyGPS++ (TinyGPSPlus).
+   It requires the use of SoftwareSerial, and assumes that you have a
+   4800-baud serial GPS device hooked up on pins 4(rx) and 3(tx).
 
+  I have a 9600 baud serial GPS device (Neo-6m) hooked up to pins D3 and D4.
+  There is a 10Kohm pullup from 5V for D4.
+  D3 has a voltage divider to ground to take 5V down to 3.3V
 
-//#define RX_PIN 3
-//#define TX_PIN 5
-
-#define SIGNAL_PIN 9
-#define LED_PIN 13
-
-// The serial connection to the GPS device
-static const int RXPin = 3, TXPin = 5;
+  I have to use the lower right USB port in this laptop, which shows up as Com4.
+  I'm using an arduino nano, ATmega328, Programmer is irrelevant.
+   
+*/
+static const int RXPin = 4, TXPin = 3;
 static const uint32_t GPSBaud = 9600;
-SoftwareSerial ss(RXPin, TXPin);
-//ross gpsserial(RX_PIN);
-//soss gpssendserial(TX_PIN);
 
 // The TinyGPS++ object
 TinyGPSPlus gps;
 
-int ledState = LOW;             // ledState used to set the LED
-long previousMillis = 0;        // will store last time LED was updated
+// The serial connection to the GPS device
+SoftwareSerial ss(RXPin, TXPin);
 
-// the follow variables is a long because the time, measured in miliseconds,
-// will quickly become a bigger number than can be stored in an int.
-long interval_nolock = 150;           // interval at which to blink (milliseconds)
-long interval_lock = 5;
-
-boolean haveLock = false;
 // For stats that happen every 5 seconds
 unsigned long last = 0UL;
 
-
 void setup()
 {
-	// GPS module speed
-// Test output
   Serial.begin(115200);
-
-   // GPS input/output
   ss.begin(GPSBaud);
 
-
-	pinMode(LED_PIN, OUTPUT);
-	digitalWrite(LED_PIN, LOW);
-	pinMode(SIGNAL_PIN, OUTPUT);
-	digitalWrite(SIGNAL_PIN, LOW);
-	//pinModeTri(RX_PIN);
-	//pinModeTri(TX_PIN);
+  Serial.println(F("KitchenSink.ino"));
+  Serial.println(F("Demonstrating nearly every feature of TinyGPS++"));
+  Serial.print(F("Testing TinyGPS++ library v. ")); Serial.println(TinyGPSPlus::libraryVersion());
+  Serial.println(F("by Mikal Hart"));
+  Serial.println();
 }
 
-void printGPSData()
+void loop()
 {
   // Dispatch incoming characters
   while (ss.available() > 0)
@@ -84,10 +58,9 @@ void printGPSData()
     Serial.print("[+");
     Serial.print(gps.location.rawLng().billionths);
     Serial.print(F(" billionths],  Lat="));
-    Serial.print(gps.location.lat());
+    Serial.print(gps.location.lat(), 6);
     Serial.print(F(" Long="));
-    Serial.print(gps.location.lng());
-    Serial.print('\n');
+    Serial.println(gps.location.lng(), 6);
   }
 
   else if (gps.date.isUpdated())
@@ -167,7 +140,7 @@ void printGPSData()
     Serial.print(F("SATELLITES Fix Age="));
     Serial.print(gps.satellites.age());
     Serial.print(F("ms Value="));
-    Serial.print(gps.satellites.value());
+    Serial.println(gps.satellites.value());
   }
 
   else if (gps.hdop.isUpdated())
@@ -221,18 +194,4 @@ void printGPSData()
     last = millis();
     Serial.println();
   }
-}
-
-
-
-void loop()
-{
-   printGPSData();
-}
-
-inline void pinModeTri(int pin)
-{
-	//digitalWrite(pin, LOW);
-	//pinMode(pin, OUTPUT);
-	pinMode(pin, INPUT);
 }

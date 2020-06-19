@@ -343,3 +343,57 @@ Blink.
 Board: Arduino nano
 Processor: AtMega329P (old boot loader)
 Programmer: AVR ISP
+
+## 14th June 2020 ##
+
+To control the OLED display you need the adafruit_SSD1306.h and the adafruit_GFX.h libraries. Follow the next instructions to install those libraries.
+
+1. Open your Arduino IDE and go to Sketch > Include Library > Manage Libraries. The Library Manager should open.
+
+2. Type “SSD1306” in the search box and install the SSD1306 library from Adafruit.
+
+3. After installing the SSD1306 library from Adafruit, type “GFX” in the search box and install the library.
+
+In your Arduino IDE, go to File > Examples > Adafruit SSD1306 and select the example for the display you’re using.
+
+Pin	Wiring to Arduino Uno
+Vin	5V
+GND	GND
+SCL	A5
+SDA	A4
+
+I followed this wiring.
+Screen soldered leads are:
+VCC white to nano 5v
+GND grey to nano gnd
+SCL purple to nano A5
+SDA blue to nano A4
+Had to change test sketch to use address 0x3C to get screen demo to work.
+
+Screen works ok. I want to integrate this screen with the nexStar sketch, but first I need to write and test the GPS Unit with the kitchen sink sketch.
+
+Wired up new (unbroken) gps unit. Need a voltage divider so the receive line, to avoid me sending 5V from the nano to the gps rx.
+
+I found two resistors, (surface mount 1002 and 2002) and made a voltage divider.
+
+The soldered GPS leads are:
+VCC white to nano 5v
+RC grey to 10k resistor then on to Nano pin D3 (set in kitchen sink sketch)
+TX blue to Nano pin D4 (set in kitchen sink sketch)
+GND purple to nano ground
+
+I copied the kitchen sink sketch to ..\KitchenSink01\
+
+## 19th June 2020 ##
+
+I want to wire up the screen to permanent pins. I just don't know which they are.
+
+The mount is connected to pins 
+#define RX_PIN 3 (D3)
+#define TX_PIN 5 (D5)
+
+The gps unit is connected to RX and TX ()
+
+![Alt text](./README_img/Arduino-Nano-pinout-1.jpg)
+
+So I should have no problem continuing to use A4 and A5 for the screen.

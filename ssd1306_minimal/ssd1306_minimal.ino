@@ -40,7 +40,6 @@ void setup() {
   // GPS module speed
   Serial.begin(57600);
 
-
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3D for 128x64
     //Serial.println(F("SSD1306 allocation failed"));
@@ -66,6 +65,48 @@ void setup() {
 
 
 void loop() {
+
+unsigned long fix_age;
+    
+    if (mountserial.available())
+    {
+      int c = mountserial.read();
+      //Serial.println(c, HEX);
+      if (msg_receiver.process(c))
+      {
+        if (msg_sender.handleMessage(&msg_receiver))
+        {
+          digitalWrite(LED_PIN, HIGH);
+          mountserial.end();
+          delay(100);
+          sendmountserial.begin(19200);
+          msg_sender.send(&sendmountserial);
+          sendmountserial.end();
+          pinModeTri(RX_PIN);
+          pinModeTri(TX_PIN);
+          mountserial.begin(19200);
+          digitalWrite(LED_PIN, LOW);
+        }
+      }
+    }
+
+    if (Serial.available())
+      {
+        char c = Serial.read();
+        gps.encode(c);
+    
+        gps.get_datetime(NULL, NULL, &fix_age);
+    
+        if ((fix_age == gps.GPS_INVALID_AGE) || (fix_age > 5000) || (gps.satellites() == gps.GPS_INVALID_SATELLITES) || (gps.satellites() < 4))
+        {
+          haveLock = false;
+        }
+        else
+        {
+          haveLock = true;
+        }
+      }
+
 
   digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
   delay(1000);                       // wait for a second

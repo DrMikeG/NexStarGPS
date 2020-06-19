@@ -33,6 +33,7 @@ long interval_nolock = 150;           // interval at which to blink (millisecond
 long interval_lock = 5;
 
 boolean haveLock = false;
+char cstr[16];
 
 void setup()
 {
@@ -41,7 +42,7 @@ void setup()
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3D for 128x64
-    Serial.println(F("SSD1306 allocation failed"));
+    //Serial.println(F("SSD1306 allocation failed"));
     for(;;); // Don't proceed, loop forever
   }
   display.clearDisplay();
@@ -107,43 +108,43 @@ void loop()
 
 	unsigned long currentMillis = millis();
 
-	if (haveLock)
-	{
-		if (currentMillis - previousMillis > interval_lock)
-		{
-			previousMillis = currentMillis;
-			static unsigned int val = 21;
-			static int dir = 1;
-			analogWrite(SIGNAL_PIN, val);
-			if ((val == 255) || (val == 20))
-			{
-				dir = dir * (-1);
-			}
-			val = val + dir;
-		}
+	// if (haveLock)
+	// {
+	// 	if (currentMillis - previousMillis > interval_lock)
+	// 	{
+	// 		previousMillis = currentMillis;
+	// 		static unsigned int val = 21;
+	// 		static int dir = 1;
+	// 		analogWrite(SIGNAL_PIN, val);
+	// 		if ((val == 255) || (val == 20))
+	// 		{
+	// 			dir = dir * (-1);
+	// 		}
+	// 		val = val + dir;
+	// 	}
 
-	}
-	else
-	{
-		if (currentMillis - previousMillis > interval_nolock)
-		{
-			// save the last time you blinked the LED
-			previousMillis = currentMillis;
+	// }
+	// else
+	// {
+	// 	if (currentMillis - previousMillis > interval_nolock)
+	// 	{
+	// 		// save the last time you blinked the LED
+	// 		previousMillis = currentMillis;
 
-			// if the LED is off turn it on and vice-versa:
-			if (ledState == LOW)
-			{
-				ledState = HIGH;
-			}
-			else
-			{
-				ledState = LOW;
-			}
+	// 		// if the LED is off turn it on and vice-versa:
+	// 		if (ledState == LOW)
+	// 		{
+	// 			ledState = HIGH;
+	// 		}
+	// 		else
+	// 		{
+	// 			ledState = LOW;
+	// 		}
 
 
-			digitalWrite(SIGNAL_PIN, ledState);
-		}
-	}
+	// 		digitalWrite(SIGNAL_PIN, ledState);
+	// 	}
+	// }
 
   testdrawAll(i);
   delay(2000);
@@ -171,9 +172,8 @@ void drawString(char* toDraw)
 
 void drawInt(int a)
 {
-  String myStr;
-  myStr = String(a);   //Converts integer to string)
-  drawString(myStr.c_str());
+  itoa(a, cstr, 10);
+  drawString(&cstr[0]);
 }
 
 void testdrawAll(int satelites)

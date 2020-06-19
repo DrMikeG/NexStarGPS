@@ -35,7 +35,7 @@ http://arduiniana.org.
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 #include <Arduino.h>
-#include <ross.h>
+#include "ross.h"
 //
 // Lookup table
 //

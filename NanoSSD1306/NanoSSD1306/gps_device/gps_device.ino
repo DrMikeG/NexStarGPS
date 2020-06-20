@@ -35,6 +35,12 @@ long interval_lock = 5;
 boolean haveLock = false;
 char cstr[16];
 
+/**
+ * Display data: 
+ * 
+**/
+long displayCountRX =0;
+
 void setup()
 {
 	// GPS module speed
@@ -91,6 +97,7 @@ void loop()
 
 	if (Serial.available())
 	{
+		displayCountRX++;
 		char c = Serial.read();
 		gps.encode(c);
 
@@ -184,7 +191,13 @@ void testdrawAll(int satelites)
   display.setCursor(0, 0);     // Start at top-left corner
   display.cp437(true);         // Use full 256 char 'Code Page 437' font
 
+  drawString("RX: ");
+  drawInt(displayCountRX);
+  //display.write('\n');
+
   drawString("satelites:");
   drawInt(satelites);
+  //display.write('\n');
+  
   display.display();
 }

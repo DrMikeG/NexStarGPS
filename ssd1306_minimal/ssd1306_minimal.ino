@@ -6,9 +6,13 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <avr/pgmspace.h>
 
 // Using default pins SDA A4 and SCL A5, no reset pin
-Adafruit_SSD1306 display(128, 64, &Wire, -1);
+#define D_WIDTH 128
+#define D_HEIGHT 64
+
+Adafruit_SSD1306 display(D_WIDTH, D_HEIGHT, &Wire, -1);
 
 #define RX_PIN 3
 #define TX_PIN 5
@@ -25,7 +29,6 @@ NexstarMessageReceiver msg_receiver;
 NexstarMessageSender msg_sender(&gps);
 
 int ledState = LOW;             // ledState used to set the LED
-long previousMillis = 0;        // will store last time LED was updated
 
 // the follow variables is a long because the time, measured in miliseconds,
 // will quickly become a bigger number than can be stored in an int.
@@ -34,17 +37,27 @@ long interval_lock = 5;
 
 int count =0;
 char cstr[16];
+long displayCountRX =0;
+
+
 
 boolean haveLock = false;
 void setup() {
   // GPS module speed
   Serial.begin(57600);
-
+  pinMode(LED_BUILTIN, OUTPUT);
+  
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3D for 128x64
-    //Serial.println(F("SSD1306 allocation failed"));
-    for(;;); // Don't proceed, loop forever
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;){ // Don't proceed, loop forever
+      digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
+      delay(200);                       // wait for a second
+      digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
+      delay(300);                
+    }
   }
+  delay(2000); // time required for display to init
   display.clearDisplay();
 
   pinMode(LED_PIN, OUTPUT);
@@ -59,7 +72,7 @@ void setup() {
   msg_receiver.reset();
 
   
-  pinMode(LED_BUILTIN, OUTPUT);
+  
 }
 
 
@@ -92,6 +105,7 @@ unsigned long fix_age;
 
     if (Serial.available())
       {
+        displayCountRX++;
         char c = Serial.read();
         gps.encode(c);
     
@@ -124,25 +138,18 @@ inline void pinModeTri(int pin)
   pinMode(pin, INPUT);
 }
 
+// save some chars
+/** ----------------------------------|-------------------||-------------------||-------------------||-------------------||-------------------||-------------------||-------------------||-------------------|*/
+const char signMessage[] PROGMEM  = {"Sat:                 GPS/RX:              Time:                I AM PREDATOR,       UNSEEN COMBATANT.    CREATED BY THE USA   Stronger, Faster...  Better than ever"};
 
-void drawString(char* toDraw)
-{
-  int i=0;
-  while(toDraw[i] != NULL)
-  {
-    display.write((uint8_t)toDraw[i]);
-    i++;
-  }
-}
+//void drawInt(int a)
+//{
+//  itoa(a, cstr, 10);
+//  drawString(&cstr[0]);
+//}
 
-
-
-void drawInt(int a)
-{
-  itoa(a, cstr, 10);
-  drawString(&cstr[0]);
-}
-
+char myChar;
+int k;    // counter variable
 void testdrawAll(int satelites)
 {
   display.clearDisplay();
@@ -151,7 +158,13 @@ void testdrawAll(int satelites)
   display.setCursor(0, 0);     // Start at top-left corner
   display.cp437(true);         // Use full 256 char 'Code Page 437' font
 
-  drawString("satelites 2:");
-  drawInt(satelites);
+  // read back a char
+  int len = strlen_P(signMessage);
+  for (k = 0; k < len; k++)
+  {
+    myChar =  pgm_read_byte_near(signMessage + k);
+    display.write(myChar);
+  }
+  
   display.display();
 }

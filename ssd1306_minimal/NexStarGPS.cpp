@@ -181,7 +181,7 @@ inline void NexstarMessageSender::pinModeTri(int pin)
 	pinMode(pin, INPUT);
 }
 
-bool NexstarMessageSender::handleMessage(NexstarMessageReceiver* receiver)
+bool NexstarMessageSender::handleMessage(NexstarMessageReceiver* receiver, uint8_t* msgTypesArray)
 {
 	nexstar_msg_union* msgin = receiver->getMessage();
 
@@ -203,6 +203,7 @@ bool NexstarMessageSender::handleMessage(NexstarMessageReceiver* receiver)
 	{
 	case MSGID_GPS_GET_LAT:
 		handleGetLat();
+    msgTypesArray[0] |= 1UL << 0;
 		break;
 	case MSGID_GPS_GET_LONG:
 		handleGetLong();

@@ -34,8 +34,12 @@ unsigned long gps_time = 0;
 unsigned long fix_age =0;
 unsigned int displayMountRX =0;
 unsigned int displayMountTX =0;
- 
+uint8_t handledMsgCount = 0;
+uint8_t msgTypesArray[] = {0,0};
 boolean haveLock = false;
+
+
+// 861 bytes
 
 void setup() {
   // GPS module speed
@@ -81,16 +85,36 @@ void loop() {
     {
       int c = mountserial.read();
       displayMountRX++;
+       if (displayMountRX>999) // Wrap at 1000
+        {
+          displayMountRX = 0;
+        }
       //Serial.println(c, HEX);
       if (msg_receiver.process(c))
       {
-        if (msg_sender.handleMessage(&msg_receiver))
+        if (msg_sender.handleMessage(&msg_receiver,msgTypesArray))
         {
+
+          // If this returns true then 
+          //msg_receiver.getMessage()->msg.header.messageid;
+          
+          
+          handledMsgCount++; // How many messages from the mount to us have we handled?
+          if (handledMsgCount >= 254) // Wrap at 254
+          {
+            handledMsgCount = 0;
+          }
+          
+          
           digitalWrite(LED_PIN, HIGH);
           mountserial.end();
           delay(100);
           sendmountserial.begin(19200);
           msg_sender.send(&sendmountserial,displayMountTX);
+          if (displayMountTX>999) // Wrap at 1000
+          {
+            displayMountTX = 0;
+          }
           sendmountserial.end();
           pinModeTri(RX_PIN);
           pinModeTri(TX_PIN);
@@ -242,7 +266,7 @@ void testdrawAll()
   drawTime(gps_time,24,24);
   // Write mount RX & TX
   drawUnsignedInt(displayMountRX,22,32);
-  drawUnsignedInt(displayMountTX,46,32);
+  drawUnsignedInt(displayMountTX,70,32);
 
   display.display();
 }

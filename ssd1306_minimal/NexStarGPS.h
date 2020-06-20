@@ -100,7 +100,7 @@ public:
 	NexstarMessageSender(TinyGPS* _gps);
 	nexstar_msg_union* getMessage();
 	bool send(soss* serial, unsigned int& sentByteCount);
-	bool handleMessage(NexstarMessageReceiver* receiver);
+	bool handleMessage(NexstarMessageReceiver* receiver, uint8_t* msgTypesArray);
 
 protected:
 	void handleGetLat();

@@ -99,7 +99,7 @@ class NexstarMessageSender
 public:
 	NexstarMessageSender(TinyGPS* _gps);
 	nexstar_msg_union* getMessage();
-	bool send(soss* serial, unsigned long& sentByteCount);
+	bool send(soss* serial, unsigned int& sentByteCount);
 	bool handleMessage(NexstarMessageReceiver* receiver);
 
 protected:

@@ -28,23 +28,15 @@ TinyGPS gps;
 NexstarMessageReceiver msg_receiver;
 NexstarMessageSender msg_sender(&gps);
 
-int ledState = LOW;             // ledState used to set the LED
-
-// the follow variables is a long because the time, measured in miliseconds,
-// will quickly become a bigger number than can be stored in an int.
-long interval_nolock = 150;           // interval at which to blink (milliseconds)
-long interval_lock = 5;
-
-int count =0;
-
-unsigned long displayCountRX =0;
-unsigned long displayCountSats =0;
+unsigned int displayCountRX =0;
+unsigned int displayCountSats =0;
 unsigned long gps_time = 0;
 unsigned long fix_age =0;
-//unsigned long displayMountRX =0;
-unsigned long displayMountTX =0;
+unsigned int displayMountRX =0;
+unsigned int displayMountTX =0;
  
 boolean haveLock = false;
+
 void setup() {
   // GPS module speed
   Serial.begin(9600);
@@ -88,7 +80,7 @@ void loop() {
     if (mountserial.available())
     {
       int c = mountserial.read();
-      //displayMountRX++;
+      displayMountRX++;
       //Serial.println(c, HEX);
       if (msg_receiver.process(c))
       {
@@ -175,10 +167,20 @@ inline void pinModeTri(int pin)
 
 // save some chars
 /** ----------------------------------|-------------------||-------------------||-------------------||-------------------||-------------------||-------------------||-------------------||-------------------|*/
-const char signMessage[] PROGMEM  = {"Sat:                 GPS/RX:              FAge:                Tm:                  Mrx        tx        CREATED BY THE USA   Stronger, Faster...  Better than ever"};
+const char signMessage[] PROGMEM  = {"Sat:                 GPS/RX:              FAge:                Tm:                  Mrx      tx          CREATED BY THE USA   Stronger, Faster...  Better than ever"};
 
 
 
+void drawUnsignedInt(unsigned int& a,int x, int y)
+{
+  display.setCursor(x, y);     // Start at top-left corner
+  char cstr[10];
+  itoa(a, cstr, 10);
+  for (int i=0; i < 10 && cstr[i] != NULL; i++)
+  {
+    display.write(cstr[i]);
+  }
+}
 void drawUnsignedLong(unsigned long& a,int x, int y)
 {
   display.setCursor(x, y);     // Start at top-left corner
@@ -231,16 +233,16 @@ void testdrawAll()
   }
 
   // Write satellites value:
-  drawUnsignedLong(displayCountSats,24,0);
+  drawUnsignedInt(displayCountSats,24,0);
   // Write GPS/RX value:
-  drawUnsignedLong(displayCountRX,44,8);
+  drawUnsignedInt(displayCountRX,44,8);
   // Write fix Age:
   drawUnsignedLong(fix_age,34,16);
   // Write time:
   drawTime(gps_time,24,24);
   // Write mount RX & TX
-  //drawUnsignedLong(displayMountRX,24,36);
-  //drawUnsignedLong(displayMountTX,46,36);
+  drawUnsignedInt(displayMountRX,22,32);
+  drawUnsignedInt(displayMountTX,46,32);
 
   display.display();
 }

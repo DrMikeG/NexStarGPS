@@ -36,15 +36,16 @@ long interval_nolock = 150;           // interval at which to blink (millisecond
 long interval_lock = 5;
 
 int count =0;
-char cstr[16];
-long displayCountRX =0;
 
+unsigned long displayCountRX =0;
+unsigned long displayCountSats =0;
 
-
+unsigned long fix_age =0;
+ 
 boolean haveLock = false;
 void setup() {
   // GPS module speed
-  Serial.begin(57600);
+  Serial.begin(9600);
   pinMode(LED_BUILTIN, OUTPUT);
   
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
@@ -72,14 +73,19 @@ void setup() {
   msg_receiver.reset();
 
   
-  
+   displayCountSats = 404;
+  display.clearDisplay();
+  display.setTextSize(1);      // Normal 1:1 pixel scale
+  display.setTextColor(SSD1306_WHITE); // Draw white text
+  display.setCursor(0, 0);     // Start at top-left corner
+  display.cp437(true);         // Use full 256 char 'Code Page 437' font
 }
 
 
 
 void loop() {
 
-unsigned long fix_age;
+   
     
     if (mountserial.available())
     {
@@ -101,16 +107,33 @@ unsigned long fix_age;
           digitalWrite(LED_PIN, LOW);
         }
       }
+      displayCountRX++;
     }
 
     if (Serial.available())
-      {
-        displayCountRX++;
+      {      
         char c = Serial.read();
-        gps.encode(c);
+        if (gps.encode(c))
+        {
+          displayCountSats = 200;
+        }
+      
+        display.write(c);
+        displayCountRX++;
+        if (displayCountRX == 168) // Wrap at 50 25
+        {
+          display.display();
+          display.setCursor(0, 0);     // Start at top-left corner
+          display.clearDisplay();
+          displayCountRX = 0;
+        }
+    
+        //if (displayCountRX>999) // Wrap at 1000
+        //  displayCountRX = 0;
     
         gps.get_datetime(NULL, NULL, &fix_age);
-    
+
+        //displayCountSats = gps.satellites();
         if ((fix_age == gps.GPS_INVALID_AGE) || (fix_age > 5000) || (gps.satellites() == gps.GPS_INVALID_SATELLITES) || (gps.satellites() < 4))
         {
           haveLock = false;
@@ -122,12 +145,15 @@ unsigned long fix_age;
       }
 
 
-  digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-  delay(1000);                       // wait for a second
-  digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-  delay(1000);                       // wait for a second
-  testdrawAll(count++);
-
+  //digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
+  //delay(1000);                       // wait for a second
+  //digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
+  //delay(1000);                       // wait for a second
+  
+  if (haveLock)
+  {
+    testdrawAll();
+  }
 }
 
 
@@ -140,17 +166,47 @@ inline void pinModeTri(int pin)
 
 // save some chars
 /** ----------------------------------|-------------------||-------------------||-------------------||-------------------||-------------------||-------------------||-------------------||-------------------|*/
-const char signMessage[] PROGMEM  = {"Sat:                 GPS/RX:              Time:                I AM PREDATOR,       UNSEEN COMBATANT.    CREATED BY THE USA   Stronger, Faster...  Better than ever"};
+const char signMessage[] PROGMEM  = {"Sat:                 GPS/RX:              FAge:                I AM PREDATOR,       UNSEEN COMBATANT.    CREATED BY THE USA   Stronger, Faster...  Better than ever"};
 
-//void drawInt(int a)
-//{
-//  itoa(a, cstr, 10);
-//  drawString(&cstr[0]);
-//}
+
+char cstr[10];
+void drawUnsignedLong(unsigned long a,int x, int y)
+{
+  // Draw a up to 000 - 999
+  // Draw         01k - 99k
+  // Draw         .1M - 99m
+  // Draw         .1B - 2b+
+  // Int overflows at 2b
+
+  display.setCursor(x, y);     // Start at top-left corner
+  
+  if (a < 1000)
+  {
+    ltoa(a, cstr, 10);
+    display.write(cstr[0]);
+    display.write(cstr[1]);
+    display.write(cstr[2]);
+  }
+  else
+  {
+    ltoa(a, cstr, 10);
+    display.write(cstr[0]);
+    display.write(cstr[1]);
+    display.write(cstr[2]);
+    display.write(cstr[3]);
+    display.write(cstr[4]);
+    display.write(cstr[5]);
+    display.write(cstr[6]);
+    display.write(cstr[7]);
+    display.write(cstr[8]);
+    display.write(cstr[9]);
+  }
+  
+}
 
 char myChar;
 int k;    // counter variable
-void testdrawAll(int satelites)
+void testdrawAll()
 {
   display.clearDisplay();
   display.setTextSize(1);      // Normal 1:1 pixel scale
@@ -165,6 +221,13 @@ void testdrawAll(int satelites)
     myChar =  pgm_read_byte_near(signMessage + k);
     display.write(myChar);
   }
+
+  // Write satellites value:
+  drawUnsignedLong(displayCountSats,24,0);
+  // Write GPS/RX value:
+  drawUnsignedLong(displayCountRX,44,8);
+  // Write fix Age:
+  drawUnsignedLong(fix_age,34,16);
   
   display.display();
 }

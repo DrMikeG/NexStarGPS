@@ -178,10 +178,11 @@ inline void pinModeTri(int pin)
 const char signMessage[] PROGMEM  = {"Sat:                 GPS/RX:              FAge:                Tm:                  Mrx        tx        CREATED BY THE USA   Stronger, Faster...  Better than ever"};
 
 
-char cstr[10];
-void drawUnsignedLong(unsigned long a,int x, int y)
+
+void drawUnsignedLong(unsigned long& a,int x, int y)
 {
   display.setCursor(x, y);     // Start at top-left corner
+  char cstr[10];
   ltoa(a, cstr, 10);
   for (int i=0; i < 10 && cstr[i] != NULL; i++)
   {
@@ -189,9 +190,10 @@ void drawUnsignedLong(unsigned long a,int x, int y)
   }
 }
 
-void drawTime(unsigned long time,int x, int y)
+void drawTime(unsigned long& time,int x, int y)
 {
   display.setCursor(x, y);     // Start at top-left corner
+  char cstr[10];
   ltoa(gps_time / 1000000, cstr, 10);
   for (int i=0; i < 10 && cstr[i] != NULL; i++)
   {
@@ -213,8 +215,6 @@ void drawTime(unsigned long time,int x, int y)
 
 
 
-char myChar;
-int k;    // counter variable
 void testdrawAll()
 {
   display.clearDisplay();
@@ -223,11 +223,10 @@ void testdrawAll()
   display.setCursor(0, 0);     // Start at top-left corner
   display.cp437(true);         // Use full 256 char 'Code Page 437' font
 
-  // read back a char
   int len = strlen_P(signMessage);
-  for (k = 0; k < len; k++)
+  for (int k = 0; k < len; k++)
   {
-    myChar =  pgm_read_byte_near(signMessage + k);
+    char myChar =  pgm_read_byte_near(signMessage + k);
     display.write(myChar);
   }
 
@@ -243,7 +242,5 @@ void testdrawAll()
   //drawUnsignedLong(displayMountRX,24,36);
   //drawUnsignedLong(displayMountTX,46,36);
 
-  
-  
   display.display();
 }

@@ -146,7 +146,7 @@ void NexstarMessageSender::calc_checksum()
 	message.data[message.msg.header.length + 2] = (result & 0xff);
 }
 
-bool NexstarMessageSender::send(soss* serial)
+bool NexstarMessageSender::send(soss* serial, unsigned long& sentByteCount)
 {
 	uint8_t bytes_to_send = message.msg.header.length - 2;
 	calc_checksum();
@@ -159,6 +159,9 @@ bool NexstarMessageSender::send(soss* serial)
 	{
 		sendByte(serial, message.msg.payload[c]);
 	}
+
+  sentByteCount+=bytes_to_send;
+ 
 	return true;
 }
 

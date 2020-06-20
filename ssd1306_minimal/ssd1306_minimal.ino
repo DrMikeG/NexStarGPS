@@ -39,8 +39,10 @@ int count =0;
 
 unsigned long displayCountRX =0;
 unsigned long displayCountSats =0;
-
+unsigned long gps_time = 0;
 unsigned long fix_age =0;
+//unsigned long displayMountRX =0;
+unsigned long displayMountTX =0;
  
 boolean haveLock = false;
 void setup() {
@@ -71,9 +73,7 @@ void setup() {
   pinModeTri(TX_PIN);
   mountserial.begin(19200);
   msg_receiver.reset();
-
   
-   displayCountSats = 404;
   display.clearDisplay();
   display.setTextSize(1);      // Normal 1:1 pixel scale
   display.setTextColor(SSD1306_WHITE); // Draw white text
@@ -84,12 +84,11 @@ void setup() {
 
 
 void loop() {
-
-   
     
     if (mountserial.available())
     {
       int c = mountserial.read();
+      //displayMountRX++;
       //Serial.println(c, HEX);
       if (msg_receiver.process(c))
       {
@@ -99,7 +98,7 @@ void loop() {
           mountserial.end();
           delay(100);
           sendmountserial.begin(19200);
-          msg_sender.send(&sendmountserial);
+          msg_sender.send(&sendmountserial,displayMountTX);
           sendmountserial.end();
           pinModeTri(RX_PIN);
           pinModeTri(TX_PIN);
@@ -107,34 +106,49 @@ void loop() {
           digitalWrite(LED_PIN, LOW);
         }
       }
-      displayCountRX++;
     }
 
     if (Serial.available())
       {      
         char c = Serial.read();
-        if (gps.encode(c))
-        {
-          displayCountSats = 200;
-        }
-      
-        display.write(c);
+        
+        gps.encode(c);
+        
         displayCountRX++;
-        if (displayCountRX == 168) // Wrap at 50 25
-        {
-          display.display();
-          display.setCursor(0, 0);     // Start at top-left corner
-          display.clearDisplay();
-          displayCountRX = 0;
-        }
-    
-        //if (displayCountRX>999) // Wrap at 1000
-        //  displayCountRX = 0;
-    
-        gps.get_datetime(NULL, NULL, &fix_age);
 
-        //displayCountSats = gps.satellites();
-        if ((fix_age == gps.GPS_INVALID_AGE) || (fix_age > 5000) || (gps.satellites() == gps.GPS_INVALID_SATELLITES) || (gps.satellites() < 4))
+        if (!haveLock)
+        {
+          // Save serial character to display buffer...
+          display.write(c);
+        
+          // If we have 168 chars the display them and clear the buffer
+          if (displayCountRX == 168) // Wrap at 50 25
+          {
+            
+            display.display(); // Write out whole screen
+            display.clearDisplay();
+            displayCountRX = 0; // Start count again
+            display.setCursor(0, 0);     // Start collecting again at top-left corner            
+          }
+        }
+        else
+        {
+          // if we have lock we just don't want displayCountRX to overflow...
+          if (displayCountRX>999) // Wrap at 1000
+          {
+            displayCountRX = 0;
+          }
+        }
+        
+        // What happens when you call this and encode returned false?
+        // You get GPS_INVALID_AGE I think
+        // Else this just gets bigger and bigger (time since last good read.)
+        gps.get_datetime(NULL, &gps_time, &fix_age);
+  
+
+        displayCountSats = gps.satellites();
+
+        if ((fix_age == gps.GPS_INVALID_AGE) || (fix_age > 10000) || (gps.satellites() == gps.GPS_INVALID_SATELLITES) || (gps.satellites() < 4))
         {
           haveLock = false;
         }
@@ -142,18 +156,13 @@ void loop() {
         {
           haveLock = true;
         }
+
       }
 
-
-  //digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-  //delay(1000);                       // wait for a second
-  //digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-  //delay(1000);                       // wait for a second
-  
-  if (haveLock)
-  {
-    testdrawAll();
-  }
+      if ( haveLock )
+      {
+        testdrawAll();
+      }
 }
 
 
@@ -166,43 +175,43 @@ inline void pinModeTri(int pin)
 
 // save some chars
 /** ----------------------------------|-------------------||-------------------||-------------------||-------------------||-------------------||-------------------||-------------------||-------------------|*/
-const char signMessage[] PROGMEM  = {"Sat:                 GPS/RX:              FAge:                I AM PREDATOR,       UNSEEN COMBATANT.    CREATED BY THE USA   Stronger, Faster...  Better than ever"};
+const char signMessage[] PROGMEM  = {"Sat:                 GPS/RX:              FAge:                Tm:                  Mrx        tx        CREATED BY THE USA   Stronger, Faster...  Better than ever"};
 
 
 char cstr[10];
 void drawUnsignedLong(unsigned long a,int x, int y)
 {
-  // Draw a up to 000 - 999
-  // Draw         01k - 99k
-  // Draw         .1M - 99m
-  // Draw         .1B - 2b+
-  // Int overflows at 2b
-
   display.setCursor(x, y);     // Start at top-left corner
-  
-  if (a < 1000)
+  ltoa(a, cstr, 10);
+  for (int i=0; i < 10 && cstr[i] != NULL; i++)
   {
-    ltoa(a, cstr, 10);
-    display.write(cstr[0]);
-    display.write(cstr[1]);
-    display.write(cstr[2]);
+    display.write(cstr[i]);
   }
-  else
-  {
-    ltoa(a, cstr, 10);
-    display.write(cstr[0]);
-    display.write(cstr[1]);
-    display.write(cstr[2]);
-    display.write(cstr[3]);
-    display.write(cstr[4]);
-    display.write(cstr[5]);
-    display.write(cstr[6]);
-    display.write(cstr[7]);
-    display.write(cstr[8]);
-    display.write(cstr[9]);
-  }
-  
 }
+
+void drawTime(unsigned long time,int x, int y)
+{
+  display.setCursor(x, y);     // Start at top-left corner
+  ltoa(gps_time / 1000000, cstr, 10);
+  for (int i=0; i < 10 && cstr[i] != NULL; i++)
+  {
+    display.write(cstr[i]);
+  }
+  display.write(':');
+  ltoa((gps_time / 10000) % 100, cstr, 10);
+  for (int i=0; i < 10 && cstr[i] != NULL; i++)
+  {
+    display.write(cstr[i]);
+  }
+  display.write(':');
+  ltoa((gps_time / 100) % 100, cstr, 10);
+  for (int i=0; i < 10 && cstr[i] != NULL; i++)
+  {
+    display.write(cstr[i]);
+  }
+}
+
+
 
 char myChar;
 int k;    // counter variable
@@ -228,6 +237,13 @@ void testdrawAll()
   drawUnsignedLong(displayCountRX,44,8);
   // Write fix Age:
   drawUnsignedLong(fix_age,34,16);
+  // Write time:
+  drawTime(gps_time,24,24);
+  // Write mount RX & TX
+  //drawUnsignedLong(displayMountRX,24,36);
+  //drawUnsignedLong(displayMountTX,46,36);
+
+  
   
   display.display();
 }

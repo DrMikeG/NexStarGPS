@@ -207,36 +207,47 @@ bool NexstarMessageSender::handleMessage(NexstarMessageReceiver* receiver, uint8
 		break;
 	case MSGID_GPS_GET_LONG:
 		handleGetLong();
+    msgTypesArray[0] |= 1UL << 1;
 		break;
 	case MSGID_GPS_GET_DATE:
 		handleGetDate();
+    msgTypesArray[0] |= 1UL << 2;
 		break;
 	case MSGID_GPS_GET_YEAR:
 		handleGetYear();
+    msgTypesArray[0] |= 1UL << 3;
 		break;
 	case MSGID_GPS_GET_SAT_INFO:
 		handleSatInfo();
+    msgTypesArray[0] |= 1UL << 4;
 		break;
 	case MSGID_GPS_GET_RCVR_STATUS:
 		handleReceiverStatus();
+   msgTypesArray[0] |= 1UL << 5;
 		break;
 	case MSGID_GPS_GET_TIME:
 		handleGetTime();
+    msgTypesArray[0] |= 1UL << 6;
 		break;
 	case MSGID_GPS_TIME_VALID:
 		handleTimeValid();
+    msgTypesArray[0] |= 1UL << 7;
 		break;
 	case MSGID_GPS_LINKED:
 		handleGpsLinked();
+    msgTypesArray[1] |= 1UL << 0;
 		break;
 	case MSGID_GPS_GET_HW_VER:
 		handleGetHardwareVersion();
+		msgTypesArray[1] |= 1UL << 1;
 		break;
 	case MSGID_GPS_GET_COMPASS:
 		handleGetCompass();
+   msgTypesArray[1] |= 1UL << 2;
 		break;
 	case MSGID_GPS_GET_VER:
 		handleGetSoftwareVersion();
+   msgTypesArray[1] |= 1UL << 3;
 		break;
 	default:
 		return false;

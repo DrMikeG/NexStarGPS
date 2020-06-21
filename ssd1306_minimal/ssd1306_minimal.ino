@@ -92,6 +92,8 @@ void loop() {
       //Serial.println(c, HEX);
       if (msg_receiver.process(c))
       {
+        msgTypesArray[1] |= 1UL << 4;
+        
         if (msg_sender.handleMessage(&msg_receiver,msgTypesArray))
         {
 
@@ -191,7 +193,7 @@ inline void pinModeTri(int pin)
 
 // save some chars
 /** ----------------------------------|-------------------||-------------------||-------------------||-------------------||-------------------||-------------------||-------------------||-------------------|*/
-const char signMessage[] PROGMEM  = {"Sat:                 GPS/RX:              FAge:                Tm:                  Mrx      tx          CREATED BY THE USA   Stronger, Faster...  Better than ever"};
+const char signMessage[] PROGMEM  = {"Sat:                 GPS/RX:              FAge:                Tm:                  Mrx      tx          Msg:"};
 
 
 
@@ -210,6 +212,16 @@ void drawUnsignedLong(unsigned long& a,int x, int y)
   display.setCursor(x, y);     // Start at top-left corner
   char cstr[10];
   ltoa(a, cstr, 10);
+  for (int i=0; i < 10 && cstr[i] != NULL; i++)
+  {
+    display.write(cstr[i]);
+  }
+}
+void drawUnsignedByte(uint8_t& a,int x, int y)
+{
+  display.setCursor(x, y);     // Start at top-left corner
+  char cstr[10];
+  itoa(a, cstr, 10);
   for (int i=0; i < 10 && cstr[i] != NULL; i++)
   {
     display.write(cstr[i]);
@@ -239,7 +251,31 @@ void drawTime(unsigned long& time,int x, int y)
   }
 }
 
-
+void testdraw16Rectangles()
+{
+  //(number >> n) & 1U;
+  int baseline=48;
+  display.setCursor(5, baseline);
+  for(int i=0; i < 8; i++)
+  {   
+    if ( (msgTypesArray[0] >> (7-i)) & 1U) 
+    {
+       display.write('1');
+    } else {
+       display.write('0');
+    }       
+  }
+  display.setCursor(60, baseline);
+  for(int i=0; i < 8; i++)
+  {
+    if ( (msgTypesArray[1] >> (7-i)) & 1U) 
+    {
+       display.write('1');
+    } else {
+       display.write('0');
+    }
+  } 
+}
 
 void testdrawAll()
 {
@@ -267,6 +303,10 @@ void testdrawAll()
   // Write mount RX & TX
   drawUnsignedInt(displayMountRX,22,32);
   drawUnsignedInt(displayMountTX,70,32);
-
+  // Write messages handled:
+  drawUnsignedByte(handledMsgCount,30,40);
+  // Write message type handelled
+  testdraw16Rectangles();
+  
   display.display();
 }

@@ -39,7 +39,7 @@ uint8_t msgTypesArray[] = {0,0};
 boolean haveLock = false;
 
 
-// 861 bytes
+// 857 bytes
 
 void setup() {
   // GPS module speed
@@ -48,7 +48,7 @@ void setup() {
   
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3D for 128x64
-    Serial.println(F("SSD1306 allocation failed"));
+    //Serial.println(F("SSD1306 allocation failed"));
     for(;;){ // Don't proceed, loop forever
       digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
       delay(200);                       // wait for a second
@@ -60,7 +60,7 @@ void setup() {
   display.clearDisplay();
 
   pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, LOW);
+  //digitalWrite(LED_PIN, LOW);
   pinMode(SIGNAL_PIN, OUTPUT);
   digitalWrite(SIGNAL_PIN, LOW);
   
@@ -108,7 +108,7 @@ void loop() {
           }
           
           
-          digitalWrite(LED_PIN, HIGH);
+          //digitalWrite(LED_PIN, HIGH);
           mountserial.end();
           delay(100);
           sendmountserial.begin(19200);
@@ -121,7 +121,7 @@ void loop() {
           pinModeTri(RX_PIN);
           pinModeTri(TX_PIN);
           mountserial.begin(19200);
-          digitalWrite(LED_PIN, LOW);
+          //digitalWrite(LED_PIN, LOW);
         }
       }
     }
@@ -177,7 +177,7 @@ void loop() {
 
       }
 
-      if ( haveLock )
+      if ( haveLock && displayCountRX % 50 == 0)
       {
         testdrawAll();
       }
